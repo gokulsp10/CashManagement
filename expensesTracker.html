@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Expense Tracker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+      }
+      h1 {
+        text-align: center;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        margin-top: 5px;
+        margin-bottom: 15px;
+      }
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #3e8e41;
+      }
+      table {
+        border-collapse: collapse;
+        margin-top: 30px;
+        margin-bottom: 30px;
+      }
+      th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #4CAF50;
+        color: white;
+      }
+    </style>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <h1>Expense Tracker</h1>
+    <div>
+      <label for="cashInHand">Cash in Hand:</label>
+      <input type="text" id="cashInHand" name="cashInHand" value="" />
+    </div>
+    <div>
+      <label for="expenseName">Expense Name:</label>
+      <input type="text" id="expenseName" name="expenseName" value="" />
+      <label for="expenseAmount">Expense Amount:</label>
+      <input type="text" id="expenseAmount" name="expenseAmount" value="" />
+    </div>
+    <div>
+      <button onclick="saveExpense()">Save</button>
+    </div>
+    <table id="expenseTable">
+      <tr>
+        <th>Date</th>
+        <th>Expense Name</th>
+        <th>Expense Amount</th>
+      </tr>
+    </table>
+	<br><br>
+	
+	<canvas id="expenseChart"></canvas>
+
+    <script>
+      const expenseTable = document.getElementById("expenseTable");
+      const cashInHandInput = document.getElementById("cashInHand");
+      const expenseNameInput = document.getElementById("expenseName");
+      const expenseAmountInput = document.getElementById("expenseAmount");
+
+      // Load cash in hand from local storage
+      cashInHandInput.value = localStorage.getItem("cashInHand") || 0;
+
+      // Load expenses from local storage
+      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
+      for (const expense of expenses) {
+        addExpenseToTable(expense);
+      }
+
+      function saveExpense() {
+  const cashInHand = Number(cashInHandInput.value);
+  const expenseName = expenseNameInput.value;
+  const expenseAmount = Number(expenseAmountInput.value);
+
+  // Subtract expense amount from cash in hand
+  const newCashInHand = cashInHand - expenseAmount;
+  cashInHandInput.value = newCashInHand;
+  localStorage.setItem("cashInHand", newCashInHand);
+
+  // Add expense to table and save to local storage
+  const expense = {
+    date: new Date().toLocaleDateString(),
+    name: expenseName,
+    amount: expenseAmount
+  };
+  expenses.push(expense);
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+
+  addExpenseToTable(expense);
+
+  updateChart();
+}
+
+function updateChart() {
+  const ctx = document.getElementById("expenseChart").getContext("2d");
+
+  const expenseData = expenses.map(expense => expense.amount);
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: expenses.map(expense => expense.name),
+      datasets: [
+        {
+          label: "Expenses",
+          data: expenseData,
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderColor: "rgba(255, 99, 132, 1)",
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+
+      function addExpenseToTable(expense) {
+        const row = expenseTable.insertRow(-1);
+        const dateCell = row.insertCell(0);
+        const nameCell = row.insertCell(1);
+        const amountCell = row.insertCell(2);
+        dateCell.innerHTML = expense.date;
+        nameCell.innerHTML = expense.name;
+        amountCell.innerHTML = expense.amount;
+      }
+    </script>
+  </body>
+</html>
